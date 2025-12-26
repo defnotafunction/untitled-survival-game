@@ -22,7 +22,6 @@ class Seed:
         self.player = player
         self._click_state = False
         self.inventory_rect_pos = self.player.inventory_rects[inventory_slot].center
-        player.inventory[f'item{inventory_slot}'] = self  # import itself to player inventory
         self.rect = pygame.Rect(self.inventory_rect_pos[0], self.inventory_rect_pos[1], 20, 20)
         self.placed = False
         self.dragged = False  
@@ -34,10 +33,22 @@ class Seed:
             self.plant_state = BasePlant(name=self.name[:-5], pos=(0,0), color=self.color,
                                      size=(10,10), growing_time=0, growing_increments=(3,3),
                                      player=player)
-            
+        
+        player.player_data.inventory[f'item{inventory_slot}'] = self.get_dict()  # import itself to player inventory
+        print(player.player_data.inventory[f'item{inventory_slot}'])    
+    
     def get_mouse_hover(self):
         return self.player.inventory_rects[self.inventory_slot].collidepoint(pygame.mouse.get_pos()) # in inventory slot it doesn't move so doesn't need camera adjustments
     
+    def get_dict(self):
+        print(self.plant_state)
+        return {
+            'name': 'Carrot Seed',
+            'type': 'Seed',
+            'color': 'orange',
+            'id': self.plant_state.id
+        }
+
     def just_clicked(self):
         pressed = pygame.mouse.get_pressed()[0]
 
@@ -100,7 +111,7 @@ class Seed:
         if self.get_dragged():
             self.rect.center = pygame.mouse.get_pos()
         elif self.get_can_be_placed(tile_map, camera):
-            self.player.inventory[f'item{self.inventory_slot}'] = None
+            self.player.player_data.inventory[f'item{self.inventory_slot}'] = self.get_dict()
             self.placed = True
 
         if not self.dragged and not self.placed:
@@ -179,7 +190,8 @@ class BasePlant(Seed):
         return (self.times_grown / (self.rarity_value*5)) >= 1 or self.growing_increments == 0
 
     def handle_pick_up(self, camera) -> None:
-        if self.just_clicked() and self.get_clicked_on(camera) and not self.picked_up and self.get_ready_for_picking(): 
+        if (self.just_clicked() and self.get_clicked_on(camera) 
+            and not self.picked_up and self.get_ready_for_picking()): 
             for inventory_slot, value in self.player.inventory.items():
                 if value is None:  # if slot is empty / is holding no value
                     self.player.inventory[inventory_slot] = self
@@ -242,8 +254,9 @@ class BasePlant(Seed):
 
 class NonFruitingPlant(BasePlant):
     def __init__(self, pos, id, player, max_size = None):
+        self.id = id
         plant_database = PlantDB()
-        self.plant_data = plant_database.get_plant(id)
+        self.plant_data = plant_database.get_plant(self.id)
         plant_database.close()
         self.image = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'images', self.plant_data[3])), (10,10))
         super().__init__(self.plant_data[1], pos, self.plant_data[2], (16,16), 0, (1,1), player, max_size, self.plant_data[-1])
@@ -271,12 +284,54 @@ class NonFruitingPlant(BasePlant):
         if self.just_clicked() and self.get_clicked_on(camera) and not self.picked_up: 
             for inventory_slot, value in self.player.inventory.items():
                 if value is None:  # if slot is empty / is holding no value
-                    self.player.inventory[inventory_slot] = self
+                    self.player.player_data.inventory[inventory_slot] = self.get_dict_picked_up()
                     self.inventory_rect = self.player.inventory_rects[int(inventory_slot[-1])]
                     self.rect.center = self.player.inventory_rects[int(inventory_slot[-1])].center
                     self.picked_up = True
                     return
                 
+    def get_dict_picked_up(self):
+        #all important stats
+        return {
+            'id': self.id,
+            'size': self.size,
+            'rarity_value': self.rarity,
+            'type': 'NonFruiting'
+        }
+
     def update(self, camera):
         self.image = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'images', self.plant_data[3])), self.size)
         return super().update(camera)
+    
+class PlantRunner:
+    def __init__(self, seeds_and_plants: list) -> None:
+        self.all_seeds_and_plants = seeds_and_plants
+        self.dragged_seed = None
+
+    def draw(self, screen, camera) -> None:
+        for obj in self.all_seeds_and_plants:
+            if isinstance(obj, BasePlant):
+                obj.draw(screen, camera)
+            else:
+                obj.draw(screen)
+    
+    def update(self, camera, tile_map) -> None:
+        for obj in self.all_seeds_and_plants:
+            if not isinstance(obj, BasePlant):
+                obj.update(tile_map, camera)
+                if obj.placed:
+                    new_pos = (pygame.mouse.get_pos()[0] + camera.offset.x,
+                               pygame.mouse.get_pos()[1] + camera.offset.y)
+                    obj.plant_state.rect.center = new_pos
+                    self.all_seeds_and_plants.append(obj.plant_state)
+                    self.all_seeds_and_plants.remove(obj)
+                # ensures there can only be one dragged seed at a time
+                if obj.dragged and (obj == self.dragged_seed or not self.dragged_seed): # can only be dragged seed if variable is available
+                    self.dragged_seed = obj
+                else:
+                    self.dragged_seed = None
+                obj.dragged = self.dragged_seed == obj
+
+            else:
+                obj.update(camera)
+                

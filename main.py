@@ -1,6 +1,6 @@
 import pygame
 import player
-from plants import Seed, BasePlant, PlantDB, NonFruitingPlant
+from plants import Seed, BasePlant, PlantRunner, NonFruitingPlant
 from items import *
 from audio import MusicPlayer
 import random
@@ -12,9 +12,7 @@ pygame.init()
 music_player = MusicPlayer()
 clock = pygame.time.Clock()
 ply1 = player.Player((650, 1300))
-very_small_number = "0.00000000000000000000000000000000000000000000000000000001"
 s1 = Seed("Carrot Seed", ply1, 0, 'orange', NonFruitingPlant((0,0), 1, ply1))
-s2 = Seed('Mystic Aiden Seed', ply1, 1, '#b22adb', BasePlant('Aiden Vroom Vroom', (0,0), '#fca1a1', (10,10), 0, (2,2), ply1, (200,200), 'intangible'))
 s3 = Seed("Carrot Seed", ply1, 2, 'orange', NonFruitingPlant((0,0), 1, ply1))
 s5 = Seed("Carrot Seed", ply1, 3, 'orange', NonFruitingPlant((0,0), 1, ply1))
 
@@ -187,38 +185,7 @@ class Camera:
         self.offset.x = max(0, min(self.offset.x, self.world_w - self.w))
         self.offset.y = max(0, min(self.offset.y, self.world_h - self.h))
 
-class PlantRunner:
-    def __init__(self, seeds_and_plants: list) -> None:
-        self.all_seeds_and_plants = seeds_and_plants
-        self.dragged_seed = None
 
-    def draw(self, screen, camera) -> None:
-        for obj in self.all_seeds_and_plants:
-            if isinstance(obj, BasePlant):
-                obj.draw(screen, camera)
-            else:
-                obj.draw(screen)
-    
-    def update(self, camera: Camera, tile_map: TileMap) -> None:
-        for obj in self.all_seeds_and_plants:
-            if not isinstance(obj, BasePlant):
-                obj.update(tile_map, camera)
-                if obj.placed:
-                    new_pos = (pygame.mouse.get_pos()[0] + camera.offset.x,
-                               pygame.mouse.get_pos()[1] + camera.offset.y)
-                    obj.plant_state.rect.center = new_pos
-                    self.all_seeds_and_plants.append(obj.plant_state)
-                    self.all_seeds_and_plants.remove(obj)
-                # ensures there can only be one dragged seed at a time
-                if obj.dragged and (obj == self.dragged_seed or not self.dragged_seed): # can only be dragged seed if variable is available
-                    self.dragged_seed = obj
-                else:
-                    self.dragged_seed = None
-                obj.dragged = self.dragged_seed == obj
-
-            else:
-                obj.update(camera)
-                
 class Game:  # easier to organize
     def __init__(self, *all_sprites):
         WIDTH, HEIGHT = 1200, 700
@@ -265,6 +232,6 @@ class Game:  # easier to organize
 
             clock.tick(60)
 
-game = Game(ply1, s1, s2, s3, s5)
+game = Game(ply1, s1, s3, s5)
 game.set_up()
 game.main() 

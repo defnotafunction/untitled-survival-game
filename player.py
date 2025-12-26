@@ -2,6 +2,19 @@ import pygame
 import items
 import json
 import os
+from dataclasses import dataclass, asdict, field
+from plants import NonFruitingPlant, Seed
+
+@dataclass
+class PlayerData:
+    health: float = 100
+    hunger: float = 100
+    illnesses: list[str] = field(default_factory=list)
+    inventory: dict[str, object] = field(
+        default_factory=lambda: {f"item{i}": None for i in range(8)}
+        )
+    coins: int = 0
+
 
 class Player:
     def __init__(self, pos: tuple) -> None:
@@ -11,7 +24,6 @@ class Player:
         self.hitbox = pygame.Rect(pos[0], self.rect.bottom, self.width, self.height/2)
         self.speed = 4.5
         self.pos = pygame.math.Vector2(pos[0], pos[1])
-        self.inventory = {f'item{i}': None for i in range(8)}
         self.past_screen_size, self.screen_size = (1200, 700), (1200,700)
         self.inventory_rects = [
             pygame.Rect(
@@ -23,29 +35,44 @@ class Player:
                 for i in range(8)]
         self.player_data_path = os.path.join('gamedata', 'playerdata', 'player_data.json')
         self.player_data = self.get_player_data()
+        self.load_saved_inventory()
+
+    def load_saved_inventory(self):
+        for idx, (slot, item) in enumerate(self.player_data.inventory.items()):
+            if item is not None:
+                if item['type'] == 'NonFruiting':
+                    item_to_implement = NonFruitingPlant((0,0), item['id'], self)
+                elif item['type'] == 'Seed':
+                    item_to_implement = Seed(item['name'], self, idx, item['color'],
+                        NonFruitingPlant((0,0), item['id'], self)
+                                            )
+
+                item_to_implement.inventory_rect = self.inventory_rects[idx]
+                item_to_implement.rect.center = self.inventory_rects[idx].center
+                item_to_implement.picked_up = True
 
     def get_player_data(self):
         if os.path.exists(self.player_data_path) and os.path.getsize(self.player_data_path) > 0:  # if path exists and actually has content in it
             with open(self.player_data_path, 'r') as ply_data:
-                    return json.load(ply_data)  # function ends here if data successfully retrieved
+                    return PlayerData(**json.load(ply_data))  # function ends here if data successfully retrieved
         
         with open(self.player_data_path, 'w') as ply_data:
-            player_data = { # create new data
-                'coins': 0,
-                'inventory': {f'item{i}': None for i in range(8)}
-                          }
-            json.dump(player_data, ply_data, indent=4)
-            return player_data
-        
-    def save_player_data(self):
-        with open(self.player_data_path, 'w') as f:
-            json.dump(self.player_data, f, indent=4)
+            player_data = PlayerData()
+            json.dump(asdict(player_data), ply_data, indent=4)
 
-    def update_inventory(self, screen):  # make sure inventory slots positions are proportional to screen size
+        return player_data
+    
+    def save_player_data(self):
+        print(self.player_data)
+        with open(self.player_data_path, 'w') as f:
+            json.dump(asdict(self.player_data), f, indent=4)
+
+    def update_inventory(self, screen):  
+        # make sure inventory slots positions are proportional to screen size
         for idx, rect in enumerate(self.inventory_rects):
             rect.left = (screen.get_width() - (8*64 + 7*20)) // 2 + idx * (64 + 20)
             rect.top = screen.get_height() - 128 - 40
-
+    
     def draw_inventory(self, screen: pygame.Surface) -> None:
         self.update_inventory(screen)
         for idx, rect in enumerate(self.inventory_rects):
