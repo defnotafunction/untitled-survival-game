@@ -15,6 +15,17 @@ class PlayerData:
         )
     coins: int = 0
 
+    def __post_init__(self):
+        self.HEALTH_BAR_PATH = os.path.join('assets', 'images', 'healthbars')
+
+    def get_health_bar_image(self):
+        for i in range(10, 0, -1):
+            if (i-1)*10 < self.health <= i*10:
+                reverse_i = 10 - i
+                if reverse_i < 10:
+                    return os.path.join(self.HEALTH_BAR_PATH, f'health0{reverse_i}.png')
+                return os.path.join(self.HEALTH_BAR_PATH, f'health{reverse_i}.png')
+
 
 class Player:
     def __init__(self, pos: tuple) -> None:
@@ -25,12 +36,13 @@ class Player:
         self.speed = 4.5
         self.pos = pygame.math.Vector2(pos[0], pos[1])
         self.past_screen_size, self.screen_size = (1200, 700), (1200,700)
+        self.INVENTORY_RECT_SIZE = 64
         self.inventory_rects = [
             pygame.Rect(
                 (1200 - (8*64 + 7*20)) // 2 + i * (64 + 20),
                 700 - 128 - 40,
-                64,
-                64
+                self.INVENTORY_RECT_SIZE,
+                self.INVENTORY_RECT_SIZE
                 ) 
                 for i in range(8)]
         self.player_data_path = os.path.join('gamedata', 'playerdata', 'player_data.json')
@@ -89,13 +101,30 @@ class Player:
             velocity = velocity.normalize() * self.speed * speed_reducer
         self.pos += velocity
 
+    def draw_health_bar(self, screen, camera):
+        # subtract 20 from x to display hp on player's left
+        health_bar_pos = (-7, -57)  
+        health_bar_image_path = self.data.get_health_bar_image()
+        health_bar_image = pygame.transform.rotate(
+            pygame.transform.scale(
+                pygame.image.load(health_bar_image_path)
+            , (200, 300)
+            )
+        , 90)
+
+        screen.blit(health_bar_image, health_bar_pos)
+    
+    def display_data(self):
+        pass
+
     def draw(self, screen: pygame.Surface, camera) -> None:
         screen_pos = (self.rect.x - camera.offset.x,
                       self.rect.y - camera.offset.y)
         pygame.draw.rect(screen, 'black', (*screen_pos, self.rect.w, self.rect.h))
         pygame.draw.rect(screen, 'white', (*(self.hitbox.x - camera.offset.x,
                       self.hitbox.y - camera.offset.y), self.hitbox.w, self.hitbox.h))
-    
+        self.draw_health_bar(screen, camera)
+
     def update(self, tile_map) -> None:
         self.rect.center = self.pos
         self.hitbox.bottomleft = self.rect.bottomleft

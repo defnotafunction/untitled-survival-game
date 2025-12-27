@@ -266,7 +266,7 @@ class NonFruitingPlant(BasePlant):
         plant_database = PlantDB()
         self.plant_data = plant_database.get_plant(self.id)
         plant_database.close()
-        self.image = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'images', self.plant_data[3])), (10,10))
+        self.image = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'images', 'plants', self.plant_data[3])), (10,10))
         super().__init__(self.plant_data[1], (0,0), self.plant_data[2], (16,16), 0, (1,1), player, max_size, self.plant_data[-1])
     
 
@@ -310,7 +310,7 @@ class NonFruitingPlant(BasePlant):
         }
 
     def update(self, camera):
-        self.image = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'images', self.plant_data[3])), self.size)
+        self.image = pygame.transform.scale(pygame.image.load(os.path.join('assets', 'images', 'plants', self.plant_data[3])), self.size)
         return super().update(camera)
     
 class PlantRunner:
