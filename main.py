@@ -1,6 +1,6 @@
 import pygame
 import player
-from plants import Seed, BasePlant, PlantRunner, NonFruitingPlant
+from plants import Seed, BasePlant, PlantRunner, NonFruitingPlant, give_seed
 from items import *
 from audio import MusicPlayer
 import random
@@ -12,9 +12,6 @@ pygame.init()
 music_player = MusicPlayer()
 clock = pygame.time.Clock()
 ply1 = player.Player((650, 1300))
-s1 = Seed("Carrot Seed", ply1, 0, 'orange', NonFruitingPlant((0,0), 1, ply1))
-s3 = Seed("Carrot Seed", ply1, 2, 'orange', NonFruitingPlant((0,0), 1, ply1))
-s5 = Seed("Carrot Seed", ply1, 3, 'orange', NonFruitingPlant((0,0), 1, ply1))
 
 class TileMap:
     CHUNK_WIDTH = 30
@@ -80,7 +77,6 @@ class TileMap:
 
         return new_tile_map
 
-    
     def get_rects_to_draw(self) -> None:
         pass
 
@@ -112,14 +108,15 @@ class TileMap:
                 tile_neighbors = self.get_tile_neighbors(tile_chunk, row_index, col_index)
                 random_chance = random.random()
                 for neighbor in tile_neighbors:
+
                     if neighbor is None:
                         continue
+
                     likiness = self.get_terrain_likiness(neighbor, tile_neighbors)
                     if connect_terrain_chances[neighbor] >= random_chance and likiness >= 0.7:
                         tile_chunk[row_index][col_index] = neighbor
                         break
 
-                
                 for tile_type, chance in sorted(base_terrain_chances.items(), key=lambda x: x[1]):
                     
                     if chance >= random_chance:
@@ -189,17 +186,39 @@ class Camera:
 class Game:  # easier to organize
     def __init__(self, *all_sprites):
         WIDTH, HEIGHT = 1200, 700
-        self.all_sprites = all_sprites
+        self.all_sprites = list(all_sprites)
         self.running = True
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
         self.WORLD_SIZE = 100000, 100000
         self.camera = Camera(WIDTH, HEIGHT, self.WORLD_SIZE[0], self.WORLD_SIZE[1])
         self.screen_rect = pygame.Rect(0, 0, WIDTH, HEIGHT)
+        
+
+    def load_player_inventory(self):
+        for idx, (slot, item) in enumerate(ply1.data.inventory.items()):
+            if item:
+                if item['type'] == 'Seed':
+                    self.all_sprites.append(Seed(name=item['name'],
+                                                 player=ply1,
+                                                 inventory_slot=idx,
+                                                 color=item['color'],
+                                                 plant_state=NonFruitingPlant(item['id'], ply1)))
+                
+                if item['type'] == 'Plant':
+                    plant_to_implement = NonFruitingPlant(item['id'], ply1)
+                    plant_to_implement.inventory_rect = ply1.inventory_rects[idx]
+                    plant_to_implement.rect.center = ply1.inventory_rects[idx].center
+                    plant_to_implement.picked_up = True
+                    plant_to_implement.size = item['size']
+                    plant_to_implement.rarity_value = item['rarity_value']
+                    self.all_sprites.append(plant_to_implement)
 
     def set_up(self) -> None:
-        all_plant_items = [sprite for sprite in self.all_sprites if isinstance(sprite, Seed)] # all base plants are children of the seed class
+        self.load_player_inventory()
+        all_plant_items = [sprite for sprite in self.all_sprites if isinstance(sprite, Seed) or isinstance(sprite, BasePlant)] # all base plants are children of the seed class
         self.plant_runner = PlantRunner(all_plant_items)
         self.tile_map = TileMap(self.camera)
+
 
     def main(self) -> None:
         pygame.display.set_caption('Grow a Garden')
@@ -232,6 +251,6 @@ class Game:  # easier to organize
 
             clock.tick(60)
 
-game = Game(ply1, s1, s3, s5)
+game = Game(ply1)
 game.set_up()
 game.main() 

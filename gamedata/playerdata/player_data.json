@@ -4,28 +4,77 @@
     "illnesses": [],
     "inventory": {
         "item0": {
-            "name": "Carrot Seed",
-            "type": "Seed",
-            "color": "orange",
-            "id": 1
+            "id": 1,
+            "size": [
+                16.0,
+                16.0
+            ],
+            "rarity_value": 0.5577086577874857,
+            "type": "Plant"
         },
-        "item1": null,
+        "item1": {
+            "id": 1,
+            "size": [
+                16.0,
+                16.0
+            ],
+            "rarity_value": 0.5625143335319978,
+            "type": "Plant"
+        },
         "item2": {
-            "name": "Carrot Seed",
-            "type": "Seed",
-            "color": "orange",
-            "id": 1
+            "id": 1,
+            "size": [
+                50.0,
+                50.0
+            ],
+            "rarity_value": 2.8943847455262324,
+            "type": "Plant"
         },
         "item3": {
-            "name": "Carrot Seed",
-            "type": "Seed",
-            "color": "orange",
-            "id": 1
+            "id": 1,
+            "size": [
+                22.0,
+                22.0
+            ],
+            "rarity_value": 1.7258004735501196,
+            "type": "Plant"
         },
-        "item4": null,
-        "item5": null,
-        "item6": null,
-        "item7": null
+        "item4": {
+            "id": 1,
+            "size": [
+                18.0,
+                18.0
+            ],
+            "rarity_value": 3.4810769899212306,
+            "type": "Plant"
+        },
+        "item5": {
+            "id": 1,
+            "size": [
+                21.0,
+                21.0
+            ],
+            "rarity_value": 3.4596930208448824,
+            "type": "Plant"
+        },
+        "item6": {
+            "id": 1,
+            "size": [
+                16.0,
+                16.0
+            ],
+            "rarity_value": 2.7813429294456964,
+            "type": "Plant"
+        },
+        "item7": {
+            "id": 1,
+            "size": [
+                19.0,
+                19.0
+            ],
+            "rarity_value": 3.41393173609225,
+            "type": "Plant"
+        }
     },
     "coins": 0
 }

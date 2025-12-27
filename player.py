@@ -34,22 +34,7 @@ class Player:
                 ) 
                 for i in range(8)]
         self.player_data_path = os.path.join('gamedata', 'playerdata', 'player_data.json')
-        self.player_data = self.get_player_data()
-        self.load_saved_inventory()
-
-    def load_saved_inventory(self):
-        for idx, (slot, item) in enumerate(self.player_data.inventory.items()):
-            if item is not None:
-                if item['type'] == 'NonFruiting':
-                    item_to_implement = NonFruitingPlant((0,0), item['id'], self)
-                elif item['type'] == 'Seed':
-                    item_to_implement = Seed(item['name'], self, idx, item['color'],
-                        NonFruitingPlant((0,0), item['id'], self)
-                                            )
-
-                item_to_implement.inventory_rect = self.inventory_rects[idx]
-                item_to_implement.rect.center = self.inventory_rects[idx].center
-                item_to_implement.picked_up = True
+        self.data = self.get_player_data()
 
     def get_player_data(self):
         if os.path.exists(self.player_data_path) and os.path.getsize(self.player_data_path) > 0:  # if path exists and actually has content in it
@@ -63,9 +48,8 @@ class Player:
         return player_data
     
     def save_player_data(self):
-        print(self.player_data)
         with open(self.player_data_path, 'w') as f:
-            json.dump(asdict(self.player_data), f, indent=4)
+            json.dump(asdict(self.data), f, indent=4)
 
     def update_inventory(self, screen):  
         # make sure inventory slots positions are proportional to screen size
@@ -111,6 +95,7 @@ class Player:
         pygame.draw.rect(screen, 'black', (*screen_pos, self.rect.w, self.rect.h))
         pygame.draw.rect(screen, 'white', (*(self.hitbox.x - camera.offset.x,
                       self.hitbox.y - camera.offset.y), self.hitbox.w, self.hitbox.h))
+    
     def update(self, tile_map) -> None:
         self.rect.center = self.pos
         self.hitbox.bottomleft = self.rect.bottomleft
