@@ -2,6 +2,34 @@ import pygame
 import os
 import random
 import json
+from dataclasses import dataclass
+from numpy import arange
+
+
+def get_biomes():
+    """
+    Returns a dictionary of biomes with ranges indicting
+    how frequent certain tiles will occur 
+    """
+    return {
+            'Wetland': {
+                'W': (0.5, 0.6),
+                'M': (0.7, 0.9),
+                'DG': (1, 1.2),
+                'LG': (0.01, 0.1),
+                'S': (0.01, 0.1),
+                'chance': 0.2
+                        },
+            'Grassland': {
+                'W': (0.2, 0.4),
+                'M': (0.1, 0.2),
+                'DG': (0.2, 0.3),
+                'LG': (1, 1.5),
+                'S': (0.1, 0.3),
+                'chance': 0.8
+            }
+        }
+
 
 class Camera:
     def __init__(self, w, h, world_w, world_h):
@@ -30,15 +58,13 @@ class TileMap:
         self.loaded_chunks = {}
         self.color_key = {
             'W': pygame.Color("#67c0d6"),  # WATER
-            'SW': pygame.Color("#3e4431"), #SWAMP WATER
+            'M': pygame.Color("#3e4431"), #MUD
             'DG': pygame.Color('#013b01'),  # DARK GRASS
             'LG': pygame.Color('#2aaa3b'),  # LIGHT GRASS
             'S': pygame.Color('#96702b')  # SOIL
         }
         self.seed = self.get_world_rng(seed)
-        self.biomes = {
-            
-        }
+    
 
     def get_tile_neighbors(self, tile_map: list[list], row_index: int, col_index: int) -> list:
         neighbors = []
@@ -53,11 +79,30 @@ class TileMap:
     
     def get_chunk_coords(self, world_x, world_y):
         return world_x // (self.CHUNK_WIDTH * self.TILE_SIZE), world_y // (self.CHUNK_HEIGHT * self.TILE_SIZE)
+    
+    def get_chunk_rng(self, chunk_x, chunk_y):
+        combined_seed = hash((self.seed, chunk_x, chunk_y))
+        return random.Random(combined_seed)
 
-    def get_terrain_likiness(self, terrain_wanted, neighbors) -> float:
+    def get_biome_for_chunk(self, chunk_x, chunk_y):
+        rng = self.get_chunk_rng(chunk_x, chunk_y)
+
+        biomes = get_biomes()
+        roll = rng.random()
+        cumulative = 0
+
+        for biome, data in biomes.items():
+            cumulative += data['chance']
+            if roll <= cumulative:
+                return biome
+
+        return 'Grassland'  # fallback
+
+
+    def get_terrain_likiness(self, terrain_wanted, neighbors, rng) -> float:
         terrain_key = {
             'W': ['LG', 'S'],
-            'SW': ['DG'],
+            'M': ['DG'],
             'LG': ['W', 'S'],
             'DG': ['SW'],
             'S': ['LG', 'W']
@@ -68,7 +113,7 @@ class TileMap:
             if neighbor in terrain_key[terrain_wanted]:
                 likiness += 1
 
-        return likiness * self.seed.random()
+        return likiness * rng.random()
     
     def blend_map(self, tile_map: list[list]) -> list[list]:
         new_tile_map = tile_map[:]
@@ -101,21 +146,22 @@ class TileMap:
         player.pos = selected_position 
         
     def generate_chunk(self, chunk_x, chunk_y):
-        print('GENERATING NEW CHUNK')
+        rng = self.get_chunk_rng(chunk_x, chunk_y)
+        biome = self.get_biome_for_chunk(chunk_x, chunk_y)
+        biome_data = get_biomes()[biome]
         tile_chunk = [[None for _ in range(self.CHUNK_WIDTH)]
                     for _ in range(self.CHUNK_HEIGHT)]
-
+        print('GENERATING NEW CHUNK')
+        print(biome)
         base_terrain_chances = {
-            'W': self.seed.uniform(0.2, 0.5),
-            'SW': self.seed.uniform(0.1, 0.3),
-            'LG': self.seed.uniform(1, 1.5),
-            'DG': self.seed.uniform(0.4, 0.8),
-            'S': self.seed.uniform(0.05, 0.1)
+            tile: rng.uniform(*biome_data[tile])
+            for tile in self.color_key
         }
+
 
         connect_terrain_chances = {
             'W': 0.9,
-            'SW': 0.3,
+            'M': 0.3,
             'LG': 1.5,
             'DG': 0.8,
             'S': 0.2
@@ -125,13 +171,13 @@ class TileMap:
         for row_index, row in enumerate(tile_chunk):
             for col_index, col in enumerate(row):
                 tile_neighbors = self.get_tile_neighbors(tile_chunk, row_index, col_index)
-                random_chance = self.seed.random()
+                random_chance = rng.random()
                 for neighbor in tile_neighbors:
 
                     if neighbor is None:
                         continue
 
-                    likiness = self.get_terrain_likiness(neighbor, tile_neighbors)
+                    likiness = self.get_terrain_likiness(neighbor, tile_neighbors, rng)
                     if connect_terrain_chances[neighbor] >= random_chance and likiness >= 1:
                         tile_chunk[row_index][col_index] = neighbor
                         break

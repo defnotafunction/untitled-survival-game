@@ -77,12 +77,19 @@ class Player:
             pygame.draw.rect(screen, 'black', rect)
 
     def get_if_in_water(self, tile_map) -> bool:
-        liquid_tiles = ['W', 'SW']
+        liquid_tiles = ['W']
         return tile_map.get_tile_at(self.hitbox.center[0], self.hitbox.center[1]) in liquid_tiles
     
+    def get_if_in_mud(self, tile_map):
+        mud_tile = 'M'
+        return tile_map.get_tile_at(self.hitbox.center[0], self.hitbox.center[1]) == mud_tile
+
     def get_speed_reducer(self, tile_map):
         if self.get_if_in_water(tile_map):
             return 0.3
+        elif self.get_if_in_mud(tile_map):
+            return 0.6
+        
         return 1
 
     def move(self, tile_map) -> None:
