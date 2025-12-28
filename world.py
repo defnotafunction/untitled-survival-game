@@ -58,7 +58,7 @@ class TileMap:
         self.loaded_chunks = {}
         self.color_key = {
             'W': pygame.Color("#67c0d6"),  # WATER
-            'M': pygame.Color("#3e4431"), #MUD
+            'M': pygame.Color("#443D31"), #MUD
             'DG': pygame.Color('#013b01'),  # DARK GRASS
             'LG': pygame.Color('#2aaa3b'),  # LIGHT GRASS
             'S': pygame.Color('#96702b')  # SOIL

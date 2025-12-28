@@ -35,7 +35,9 @@ class Player:
         self.width = 75
         self.rect = pygame.Rect(pos[0], pos[1], self.width, self.height)
         self.hitbox = pygame.Rect(pos[0], self.rect.bottom, self.width, self.height/2)
-        self.speed = 4.5
+        self.speed = 2.5
+        self.sprint_button = pygame.K_LSHIFT
+        self.sprint_multiplier = 1.8
         self.pos = pygame.math.Vector2(pos[0], pos[1])
         self.past_screen_size, self.screen_size = (1200, 700), (1200,700)
         self.INVENTORY_RECT_SIZE = 64
@@ -71,6 +73,9 @@ class Player:
             rect.left = (screen.get_width() - (8*64 + 7*20)) // 2 + idx * (64 + 20)
             rect.top = screen.get_height() - 128 - 40
     
+    def get_sprinting(self):
+        return pygame.key.get_pressed()[self.sprint_button]
+
     def draw_inventory(self, screen: pygame.Surface) -> None:
         self.update_inventory(screen)
         for idx, rect in enumerate(self.inventory_rects):
@@ -108,6 +113,10 @@ class Player:
 
         if velocity.length() > 0:
             velocity = velocity.normalize() * self.speed * speed_reducer
+        
+        if self.get_sprinting():
+            velocity *= self.sprint_multiplier
+
         self.pos += velocity
 
     def draw_health_bar(self, screen, camera):
