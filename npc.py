@@ -6,3 +6,7 @@ class BaseEnemy:
     """
     def __init__(self):
         pass
+    
+    
+    def go_to_point(self, player):
+        pass

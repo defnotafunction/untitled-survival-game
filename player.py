@@ -4,6 +4,8 @@ import json
 import os
 from dataclasses import dataclass, asdict, field
 from plants import NonFruitingPlant, Seed
+import pygame
+
 
 @dataclass
 class PlayerData:

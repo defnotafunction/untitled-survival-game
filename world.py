@@ -36,6 +36,9 @@ class TileMap:
             'S': pygame.Color('#96702b')  # SOIL
         }
         self.seed = self.get_world_rng(seed)
+        self.biomes = {
+            
+        }
 
     def get_tile_neighbors(self, tile_map: list[list], row_index: int, col_index: int) -> list:
         neighbors = []
@@ -88,9 +91,15 @@ class TileMap:
         with open(self.WORLD_DATA_PATH, 'w') as world_f:
             pass
 
-    def drop_player(self, player):
-        selected_position = None
-
+    def drop_player(self, player, world_size: tuple):
+        padding_between_edge = 0.2
+        x_range = range(int(world_size[0] * padding_between_edge),
+                        world_size[0] - int(world_size[0] * padding_between_edge))
+        y_range = range(int(world_size[1] * padding_between_edge),
+                        world_size[1] - int(world_size[1] * padding_between_edge))
+        selected_position = random.choice(list(x_range)), random.choice(list(y_range))
+        player.pos = selected_position 
+        
     def generate_chunk(self, chunk_x, chunk_y):
         print('GENERATING NEW CHUNK')
         tile_chunk = [[None for _ in range(self.CHUNK_WIDTH)]
