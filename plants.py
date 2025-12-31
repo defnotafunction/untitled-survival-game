@@ -330,11 +330,9 @@ class PlantRunner:
             if isinstance(obj, Seed):
                 obj.update(tile_map, camera)
                 if obj.placed:
-                    print(obj)
                     new_pos = (pygame.mouse.get_pos()[0] + camera.offset.x,
                                pygame.mouse.get_pos()[1] + camera.offset.y)
                     obj.plant_state.rect.center = new_pos
-                    print('Placed!')
                     self.all_seeds_and_plants.append(obj.plant_state)
                     self.all_seeds_and_plants.remove(obj)
                     break

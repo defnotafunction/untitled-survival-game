@@ -1,0 +1,18 @@
+{
+    "name": "TRADINGNPC",
+    "neutral": [
+        "This is the best I can do for you",
+        "A deal of a lifetime!",
+        "You'd accept this deal if you know what's best"
+    ],
+    "happy": [
+        "My friend, this deal I will only do for you",
+        "Shh, you get this special deal!",
+        "Would pay less, but for you, more"
+    ],
+    "unhappy": [
+        "Trade and leave.",
+        "Make sure this visit is your last.",
+        "..."
+    ]
+}

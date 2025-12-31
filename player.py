@@ -5,7 +5,7 @@ import os
 from dataclasses import dataclass, asdict, field
 from plants import NonFruitingPlant, Seed
 import pygame
-
+import ptext
 
 @dataclass
 class PlayerData:
@@ -132,8 +132,10 @@ class Player:
 
         screen.blit(health_bar_image, health_bar_pos)
     
-    def display_data(self):
-        pass
+    def display_data(self, screen):
+        coin_padding = 100
+        coin_position = (screen.get_width()-(len(str(self.data.coins))*coin_padding), 10)
+        ptext.draw(f'Coins: {self.data.coins}', coin_position)
 
     def draw(self, screen: pygame.Surface, camera) -> None:
         screen_pos = (self.rect.x - camera.offset.x,
@@ -142,6 +144,7 @@ class Player:
         pygame.draw.rect(screen, 'white', (*(self.hitbox.x - camera.offset.x,
                       self.hitbox.y - camera.offset.y), self.hitbox.w, self.hitbox.h))
         self.draw_health_bar(screen, camera)
+        self.display_data(screen)
 
     def update(self, tile_map) -> None:
         self.rect.center = self.pos
