@@ -14,5 +14,11 @@
         "Trade and leave.",
         "Make sure this visit is your last.",
         "..."
+    ],
+    "denial": [
+        "I can't trade that!",
+        "Tempting... No.",
+        "I'd prefer something else",
+        "I'll pass on that one"
     ]
 }

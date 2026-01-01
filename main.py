@@ -13,9 +13,9 @@ music_player = MusicPlayer()
 clock = pygame.time.Clock()
 ply1 = player.Player((650, 1300))
 s1 = give_seed(ply1, 1, 7)
-tr1 = TradingNPC(ply1.pos.copy(), None, (100,100), 100, 1)
-tr2 = TradingNPC(ply1.pos.copy() + (200, 0), None, (100,100), 100, 0.5)
-tr3 = TradingNPC(ply1.pos.copy() + (400, 0), None, (100,100), 100, 0.1)
+tr1 = TradingNPC('Tader', ply1.pos.copy(), None, (100,100), 200, 1)
+tr2 = TradingNPC('Radvier', ply1.pos.copy() + (200, 0), None, (100,100), 200, 0.5)
+tr3 = TradingNPC('Rake snake', ply1.pos.copy() + (400, 0), None, (100,100), 200, 0.1)
 
 class Game:  # easier to organize
     def __init__(self, *all_sprites, player):

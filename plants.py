@@ -213,7 +213,7 @@ class BasePlant:
             info_to_display = f'''
                             {self.name.upper()}
                                 Size - {round(np.sum(self.size)//1.2)} cm²
-                                Price - {self.calculate_price():.0f} {'coins' if self.calculate_price() > 1 else 'coin'}
+                                Roughly {self.calculate_price():.0f} {'coins' if self.calculate_price() > 1 else 'coin'}
                             '''
             display_pos = (pygame.mouse.get_pos()[0]-50, pygame.mouse.get_pos()[1]-100)
         else:
